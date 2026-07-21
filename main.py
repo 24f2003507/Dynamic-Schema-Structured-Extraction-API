@@ -7,6 +7,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from openai import OpenAI
 
+# Load .env file
 load_dotenv()
 
 # AI Pipe OpenAI-compatible client
@@ -72,7 +73,6 @@ def convert_value(value, typ):
             return None
 
         if typ == "date":
-            # Expect YYYY-MM-DD
             try:
                 dt = datetime.strptime(value, "%Y-%m-%d")
                 return dt.strftime("%Y-%m-%d")
@@ -88,21 +88,18 @@ def convert_value(value, typ):
 def dynamic_extract(payload: DynamicRequest):
     prompt = build_prompt(payload.text, payload.schema)
 
-    # Call AI Pipe
     response = client.chat.completions.create(
-        model="gpt-4o-mini",   # AI Pipe supports this
+        model="gpt-4o-mini",
         messages=[{"role": "user", "content": prompt}]
     )
 
     raw = response.choices[0].message.content
 
-    # Parse JSON safely
     try:
         extracted = json.loads(raw)
     except:
         extracted = {}
 
-    # Build strict output
     final = {}
 
     for key, typ in payload.schema.items():
